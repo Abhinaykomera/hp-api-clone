@@ -1,5 +1,7 @@
-const Character  = require('../models/Character');
-const cloudinary = require('../config/cloudinary');
+const Character   = require('../models/Character');
+const cloudinary  = require('../config/cloudinary');
+const sendEmail   = require('../utils/sendEmail');
+const logToSheet  = require('../utils/logToSheet');
 
 // ── Shared helpers ─────────────────────────────────────────────
 const parsePagination = (query) => {
@@ -87,6 +89,32 @@ const createCharacter = async (req, res, next) => {
   try {
     const { name, house, species, patronus, wand, image } = req.body;
     const character = await Character.create({ name, house, species, patronus, wand, image });
+
+    // Notify — failures are caught and logged; the API response is unaffected
+    try {
+      await Promise.all([
+        sendEmail({
+          type  : 'Character',
+          name  : character.name,
+          fields: {
+            Name    : character.name,
+            House   : character.house ?? 'N/A',
+            Species : character.species || 'Human',
+            Patronus: character.patronus || 'N/A',
+            Wand    : character.wand ?? {},
+            Image   : character.image || 'N/A',
+          },
+        }),
+        logToSheet({
+          entityType: 'Character',
+          name      : character.name,
+          data      : character.toObject(),
+        }),
+      ]);
+    } catch (notifyErr) {
+      console.error('[createCharacter] Notification error (non-fatal):', notifyErr.message);
+    }
+
     res.status(201).json({ success: true, data: character });
   } catch (error) {
     handleMongooseError(error, req.body, res, next);

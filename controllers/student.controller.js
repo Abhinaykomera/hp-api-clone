@@ -1,4 +1,6 @@
-const Student = require('../models/Student');
+const Student    = require('../models/Student');
+const sendEmail  = require('../utils/sendEmail');
+const logToSheet = require('../utils/logToSheet');
 
 // ── Shared helpers ─────────────────────────────────────────────
 const parsePagination = (query) => {
@@ -86,6 +88,30 @@ const createStudent = async (req, res, next) => {
   try {
     const { name, house, year, bloodStatus } = req.body;
     const student = await Student.create({ name, house, year, bloodStatus });
+
+    // Notify — failures are caught and logged; the API response is unaffected
+    try {
+      await Promise.all([
+        sendEmail({
+          type  : 'Student',
+          name  : student.name,
+          fields: {
+            Name          : student.name,
+            House         : student.house ?? 'N/A',
+            Year          : student.year ?? 'N/A',
+            'Blood Status': student.bloodStatus || 'unknown',
+          },
+        }),
+        logToSheet({
+          entityType: 'Student',
+          name      : student.name,
+          data      : student.toObject(),
+        }),
+      ]);
+    } catch (notifyErr) {
+      console.error('[createStudent] Notification error (non-fatal):', notifyErr.message);
+    }
+
     res.status(201).json({ success: true, data: student });
   } catch (error) {
     handleMongooseError(error, req.body, res, next);
