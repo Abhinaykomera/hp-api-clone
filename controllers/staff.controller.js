@@ -1,6 +1,5 @@
 const Staff = require('../models/Staff');
 
-// ── Shared helpers ─────────────────────────────────────────────
 const parsePagination = (query) => {
   const page  = Math.max(1, parseInt(query.page,  10) || 1);
   const limit = Math.min(100, Math.max(1, parseInt(query.limit, 10) || 10));
@@ -20,22 +19,16 @@ const handleMongooseError = (error, body, res, next) => {
   next(error);
 };
 
-// ─────────────────────────────────────────────────────────────
-// @desc    Get all staff (paginated, filterable)
-// @route   GET /api/staff?page=1&limit=10&name=snape&house=<id>
-// @access  Public
-// ─────────────────────────────────────────────────────────────
 const getStaff = async (req, res, next) => {
   try {
     const { page, limit, skip } = parsePagination(req.query);
 
-    // Build filter — both params are optional and combinable
     const filter = {};
     if (req.query.name) {
       filter.name = { $regex: req.query.name, $options: 'i' };
     }
     if (req.query.house) {
-      filter.house = req.query.house; // expects a valid House ObjectId
+      filter.house = req.query.house; 
     }
 
     const [staff, total] = await Promise.all([
@@ -60,11 +53,6 @@ const getStaff = async (req, res, next) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// @desc    Get a single staff member by ID
-// @route   GET /api/staff/:id
-// @access  Public
-// ─────────────────────────────────────────────────────────────
 const getStaffById = async (req, res, next) => {
   try {
     const member = await Staff.findById(req.params.id);
@@ -77,11 +65,6 @@ const getStaffById = async (req, res, next) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// @desc    Create a staff member
-// @route   POST /api/staff
-// @access  Protected
-// ─────────────────────────────────────────────────────────────
 const createStaff = async (req, res, next) => {
   try {
     const { name, house, subject, title } = req.body;
@@ -92,11 +75,6 @@ const createStaff = async (req, res, next) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// @desc    Update a staff member
-// @route   PUT /api/staff/:id
-// @access  Protected
-// ─────────────────────────────────────────────────────────────
 const updateStaff = async (req, res, next) => {
   try {
     const { name, house, subject, title } = req.body;
@@ -114,11 +92,6 @@ const updateStaff = async (req, res, next) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// @desc    Delete a staff member
-// @route   DELETE /api/staff/:id
-// @access  Protected
-// ─────────────────────────────────────────────────────────────
 const deleteStaff = async (req, res, next) => {
   try {
     const member = await Staff.findByIdAndDelete(req.params.id);
