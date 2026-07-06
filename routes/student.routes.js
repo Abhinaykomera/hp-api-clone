@@ -10,11 +10,9 @@ const { protect } = require('../middleware/auth.middleware');
 
 const router = express.Router();
 
-// ── Public ──────────────────────────────────────────────────
 router.get('/',    getStudents);
 router.get('/:id', getStudentById);
 
-// ── Protected ────────────────────────────────────────────────
 router.post('/',    protect, createStudent);
 router.put('/:id',  protect, updateStudent);
 router.delete('/:id', protect, deleteStudent);
