@@ -1,6 +1,5 @@
 const Student = require('../models/Student');
 
-// ── Shared helpers ─────────────────────────────────────────────
 const parsePagination = (query) => {
   const page  = Math.max(1, parseInt(query.page,  10) || 1);
   const limit = Math.min(100, Math.max(1, parseInt(query.limit, 10) || 10));
@@ -20,22 +19,16 @@ const handleMongooseError = (error, body, res, next) => {
   next(error);
 };
 
-// ─────────────────────────────────────────────────────────────
-// @desc    Get all students (paginated, filterable)
-// @route   GET /api/students?page=1&limit=10&name=harry&house=<id>
-// @access  Public
-// ─────────────────────────────────────────────────────────────
 const getStudents = async (req, res, next) => {
   try {
     const { page, limit, skip } = parsePagination(req.query);
 
-    // Build filter — both params are optional and combinable
     const filter = {};
     if (req.query.name) {
       filter.name = { $regex: req.query.name, $options: 'i' };
     }
     if (req.query.house) {
-      filter.house = req.query.house; // expects a valid House ObjectId
+      filter.house = req.query.house; 
     }
 
     const [students, total] = await Promise.all([
@@ -60,11 +53,6 @@ const getStudents = async (req, res, next) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// @desc    Get a single student by ID
-// @route   GET /api/students/:id
-// @access  Public
-// ─────────────────────────────────────────────────────────────
 const getStudentById = async (req, res, next) => {
   try {
     const student = await Student.findById(req.params.id);
@@ -77,11 +65,6 @@ const getStudentById = async (req, res, next) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// @desc    Create a student
-// @route   POST /api/students
-// @access  Protected
-// ─────────────────────────────────────────────────────────────
 const createStudent = async (req, res, next) => {
   try {
     const { name, house, year, bloodStatus } = req.body;
@@ -92,11 +75,6 @@ const createStudent = async (req, res, next) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// @desc    Update a student
-// @route   PUT /api/students/:id
-// @access  Protected
-// ─────────────────────────────────────────────────────────────
 const updateStudent = async (req, res, next) => {
   try {
     const { name, house, year, bloodStatus } = req.body;
@@ -114,11 +92,6 @@ const updateStudent = async (req, res, next) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// @desc    Delete a student
-// @route   DELETE /api/students/:id
-// @access  Protected
-// ─────────────────────────────────────────────────────────────
 const deleteStudent = async (req, res, next) => {
   try {
     const student = await Student.findByIdAndDelete(req.params.id);
