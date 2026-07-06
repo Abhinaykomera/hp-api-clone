@@ -6,7 +6,7 @@ const wandSchema = new mongoose.Schema(
     core:      { type: String, trim: true, default: '' },
     lengthIn:  { type: Number, min: 0, default: null },
   },
-  { _id: false } // embedded sub-document, no own _id needed
+  { _id: false }
 );
 
 const characterSchema = new mongoose.Schema(
@@ -22,7 +22,7 @@ const characterSchema = new mongoose.Schema(
     house: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'House',
-      default: null, // not every character belongs to a house
+      default: null, 
     },
 
     species: {
@@ -43,8 +43,6 @@ const characterSchema = new mongoose.Schema(
       type: wandSchema,
       default: () => ({}),
     },
-
-    // URL or Cloudinary public_id — populated later when upload feature is added
     image: {
       type: String,
       trim: true,
@@ -56,7 +54,6 @@ const characterSchema = new mongoose.Schema(
   }
 );
 
-// Populate house name automatically when querying
 characterSchema.pre(/^find/, function (next) {
   this.populate({ path: 'house', select: 'name animal colors' });
   next();

@@ -3,7 +3,6 @@ const cloudinary  = require('../config/cloudinary');
 const sendEmail   = require('../utils/sendEmail');
 const logToSheet  = require('../utils/logToSheet');
 
-// ── Shared helpers ─────────────────────────────────────────────
 const parsePagination = (query) => {
   const page  = Math.max(1, parseInt(query.page,  10) || 1);
   const limit = Math.min(100, Math.max(1, parseInt(query.limit, 10) || 10));
@@ -23,22 +22,16 @@ const handleMongooseError = (error, body, res, next) => {
   next(error);
 };
 
-// ─────────────────────────────────────────────────────────────
-// @desc    Get all characters (paginated, filterable)
-// @route   GET /api/characters?page=1&limit=10&name=harry&house=<id>
-// @access  Public
-// ─────────────────────────────────────────────────────────────
 const getCharacters = async (req, res, next) => {
   try {
     const { page, limit, skip } = parsePagination(req.query);
 
-    // Build filter — both params are optional and combinable
     const filter = {};
     if (req.query.name) {
       filter.name = { $regex: req.query.name, $options: 'i' };
     }
     if (req.query.house) {
-      filter.house = req.query.house; // expects a valid House ObjectId
+      filter.house = req.query.house; 
     }
 
     const [characters, total] = await Promise.all([
@@ -63,11 +56,7 @@ const getCharacters = async (req, res, next) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// @desc    Get a single character by ID
-// @route   GET /api/characters/:id
-// @access  Public
-// ─────────────────────────────────────────────────────────────
+
 const getCharacterById = async (req, res, next) => {
   try {
     const character = await Character.findById(req.params.id);
@@ -80,11 +69,6 @@ const getCharacterById = async (req, res, next) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// @desc    Create a character
-// @route   POST /api/characters
-// @access  Protected
-// ─────────────────────────────────────────────────────────────
 const createCharacter = async (req, res, next) => {
   try {
     const { name, house, species, patronus, wand, image } = req.body;
@@ -121,11 +105,7 @@ const createCharacter = async (req, res, next) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// @desc    Update a character
-// @route   PUT /api/characters/:id
-// @access  Protected
-// ─────────────────────────────────────────────────────────────
+
 const updateCharacter = async (req, res, next) => {
   try {
     const { name, house, species, patronus, wand, image } = req.body;
@@ -143,11 +123,6 @@ const updateCharacter = async (req, res, next) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// @desc    Delete a character
-// @route   DELETE /api/characters/:id
-// @access  Protected
-// ─────────────────────────────────────────────────────────────
 const deleteCharacter = async (req, res, next) => {
   try {
     const character = await Character.findByIdAndDelete(req.params.id);
@@ -164,11 +139,6 @@ const deleteCharacter = async (req, res, next) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// @desc    Upload / replace a character's image via Cloudinary
-// @route   POST /api/characters/:id/image
-// @access  Protected
-// ─────────────────────────────────────────────────────────────
 const uploadCharacterImage = async (req, res, next) => {
   try {
     if (!req.file) {
@@ -186,10 +156,8 @@ const uploadCharacterImage = async (req, res, next) => {
       });
     }
 
-    // If the character already has a Cloudinary image, delete the old one
-    // so we don't accumulate orphaned assets.
     if (character.image && character.image.includes('cloudinary.com')) {
-      // Extract public_id from the URL  (last path segment without extension)
+      
       const parts   = character.image.split('/');
       const file    = parts[parts.length - 1];
       const folder  = parts[parts.length - 2];
@@ -197,14 +165,13 @@ const uploadCharacterImage = async (req, res, next) => {
       await cloudinary.uploader.destroy(publicId).catch(() => {}); // non-fatal
     }
 
-    // Stream the in-memory buffer to Cloudinary
+ 
     const secure_url = await new Promise((resolve, reject) => {
       const stream = cloudinary.uploader.upload_stream(
         {
           folder: 'hp-api-clone/characters',
           resource_type: 'image',
-          // Use the character's MongoDB id as a stable public_id so
-          // re-uploads automatically overwrite the old asset.
+
           public_id: character._id.toString(),
           overwrite: true,
         },
@@ -216,7 +183,7 @@ const uploadCharacterImage = async (req, res, next) => {
       stream.end(req.file.buffer);
     });
 
-    // Persist the new URL
+  
     character.image = secure_url;
     await character.save();
 

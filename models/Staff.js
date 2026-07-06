@@ -13,10 +13,9 @@ const staffSchema = new mongoose.Schema(
     house: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'House',
-      default: null, // staff may not belong to a house (e.g. Filch)
+      default: null, 
     },
 
-    // e.g. "Defence Against the Dark Arts", "Potions"
     subject: {
       type: String,
       trim: true,
@@ -24,7 +23,6 @@ const staffSchema = new mongoose.Schema(
       default: '',
     },
 
-    // e.g. "Professor", "Headmaster", "Caretaker"
     title: {
       type: String,
       trim: true,

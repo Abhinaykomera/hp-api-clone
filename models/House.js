@@ -17,7 +17,6 @@ const houseSchema = new mongoose.Schema(
       maxlength: [100, 'Founder name cannot exceed 100 characters'],
     },
 
-    // e.g. ["scarlet", "gold"]
     colors: {
       type: [String],
       required: [true, 'At least one house color is required'],
@@ -27,7 +26,6 @@ const houseSchema = new mongoose.Schema(
       },
     },
 
-    // e.g. "Lion"
     animal: {
       type: String,
       required: [true, 'House animal is required'],
@@ -35,7 +33,6 @@ const houseSchema = new mongoose.Schema(
       maxlength: [80, 'Animal name cannot exceed 80 characters'],
     },
 
-    // e.g. ["bravery", "nerve", "chivalry"]
     traits: {
       type: [String],
       default: [],

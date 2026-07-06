@@ -1,18 +1,17 @@
-# Dependencies
+
 node_modules/
 
-# Environment variables — never commit the real .env
 .env
 
-# Logs
+
 logs/
 *.log
 npm-debug.log*
 
-# OS artefacts
+
 .DS_Store
 Thumbs.db
 
-# Build / dist
+
 dist/
 build/

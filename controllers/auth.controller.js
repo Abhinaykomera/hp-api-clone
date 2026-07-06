@@ -1,7 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
-// ── Helper: sign a JWT ─────────────────────────────────────────
 const signToken = (id, role) => {
   return jwt.sign(
     { id, role },
@@ -10,7 +9,6 @@ const signToken = (id, role) => {
   );
 };
 
-// ── Helper: build the response payload ────────────────────────
 const sendTokenResponse = (user, statusCode, res) => {
   const token = signToken(user._id, user.role);
 
@@ -26,17 +24,9 @@ const sendTokenResponse = (user, statusCode, res) => {
   });
 };
 
-// ─────────────────────────────────────────────────────────────
-// @desc    Register a new user
-// @route   POST /api/auth/register
-// @access  Public
-// ─────────────────────────────────────────────────────────────
 const register = async (req, res, next) => {
   try {
     const { name, email, password, role } = req.body;
-
-    // Duplicate email check (unique index also guards this, but an
-    // explicit check gives a friendlier error message)
     const existing = await User.findOne({ email });
     if (existing) {
       return res.status(409).json({
@@ -45,7 +35,6 @@ const register = async (req, res, next) => {
       });
     }
 
-    // Prevent clients from self-assigning the admin role
     const safeRole = role === 'admin' ? 'user' : role;
 
     const user = await User.create({ name, email, password, role: safeRole });
@@ -56,11 +45,6 @@ const register = async (req, res, next) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// @desc    Login an existing user
-// @route   POST /api/auth/login
-// @access  Public
-// ─────────────────────────────────────────────────────────────
 const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
@@ -73,7 +57,6 @@ const login = async (req, res, next) => {
       });
     }
 
-    // Explicitly select password back in (it is excluded by default)
     const user = await User.findOne({ email }).select('+password');
 
     if (!user || !(await user.matchPassword(password))) {
@@ -89,14 +72,10 @@ const login = async (req, res, next) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// @desc    Get the currently authenticated user
-// @route   GET /api/auth/me
-// @access  Protected
-// ─────────────────────────────────────────────────────────────
+
 const getMe = async (req, res, next) => {
   try {
-    // req.user is attached by the auth middleware
+   
     const user = await User.findById(req.user.id);
 
     res.status(200).json({
