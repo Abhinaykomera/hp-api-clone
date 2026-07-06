@@ -1,13 +1,9 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
-// ─────────────────────────────────────────────────────────────
-// protect — verifies the Bearer token and attaches req.user
-// ─────────────────────────────────────────────────────────────
 const protect = async (req, res, next) => {
   let token;
 
-  // Accept token from the Authorization header: "Bearer <token>"
   if (
     req.headers.authorization &&
     req.headers.authorization.startsWith('Bearer ')
@@ -23,10 +19,10 @@ const protect = async (req, res, next) => {
   }
 
   try {
-    // Verify signature and expiry
+
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // Attach fresh user data (without password) to the request
+
     const currentUser = await User.findById(decoded.id);
 
     if (!currentUser) {
@@ -52,11 +48,6 @@ const protect = async (req, res, next) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// authorize(...roles) — role-based access control guard
-//
-// Usage:  router.delete('/:id', protect, authorize('admin'), handler)
-// ─────────────────────────────────────────────────────────────
 const authorize = (...roles) => {
   return (req, res, next) => {
     if (!roles.includes(req.user.role)) {
