@@ -1,0 +1,642 @@
+{
+  "info": {
+    "name": "HP API Clone",
+    "_postman_id": "hp-api-clone-collection-v1",
+    "description": "Complete REST API collection for the Harry Potter API Clone.\n\n**Quick start**\n1. Set the `baseUrl` collection variable to `http://localhost:5000` (or your deployed URL).\n2. Run **Login** — the JWT is saved automatically to the `jwt` collection variable.\n3. All protected requests use `{{jwt}}` in their Authorization header — no manual copy-paste needed.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+
+  "variable": [
+    { "key": "baseUrl",  "value": "http://localhost:5000", "type": "string" },
+    { "key": "jwt",      "value": "",                      "type": "string" },
+    { "key": "houseId",  "value": "",                      "type": "string" },
+    { "key": "charId",   "value": "",                      "type": "string" },
+    { "key": "studentId","value": "",                      "type": "string" },
+    { "key": "staffId",  "value": "",                      "type": "string" }
+  ],
+
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{jwt}}", "type": "string" }]
+  },
+
+  "item": [
+
+    {
+      "name": "🔐 Auth",
+      "item": [
+
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/auth/register", "host": ["{{baseUrl}}"], "path": ["api","auth","register"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Admin User\",\n  \"email\": \"admin@hogwarts.com\",\n  \"password\": \"secret123\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "",
+                  "if (json.success && json.token) {",
+                  "    pm.collectionVariables.set('jwt', json.token);",
+                  "    console.log('✅ JWT saved to collection variable: jwt');",
+                  "} else {",
+                  "    console.warn('⚠️  Login response did not contain a token:', JSON.stringify(json));",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api","auth","login"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@hogwarts.com\",\n  \"password\": \"secret123\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Get Me (protected)",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwt}}", "type": "string" }] },
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/auth/me", "host": ["{{baseUrl}}"], "path": ["api","auth","me"] }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/health", "host": ["{{baseUrl}}"], "path": ["api","health"] }
+          },
+          "response": []
+        }
+
+      ]
+    },
+
+    {
+      "name": "🏰 Houses",
+      "item": [
+
+        {
+          "name": "Get All Houses",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.success && json.data && json.data.length > 0) {",
+                  "    pm.collectionVariables.set('houseId', json.data[0]._id);",
+                  "    console.log('houseId saved:', json.data[0]._id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/houses?page=1&limit=10",
+              "host": ["{{baseUrl}}"], "path": ["api","houses"],
+              "query": [
+                { "key": "page",  "value": "1" },
+                { "key": "limit", "value": "10" }
+              ]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Get House By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/houses/{{houseId}}", "host": ["{{baseUrl}}"], "path": ["api","houses","{{houseId}}"] }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Create House (protected)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.success && json.data) {",
+                  "    pm.collectionVariables.set('houseId', json.data._id);",
+                  "    console.log('houseId saved:', json.data._id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwt}}", "type": "string" }] },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/houses", "host": ["{{baseUrl}}"], "path": ["api","houses"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Gryffindor\",\n  \"founder\": \"Godric Gryffindor\",\n  \"colors\": [\"scarlet\", \"gold\"],\n  \"animal\": \"Lion\",\n  \"traits\": [\"bravery\", \"nerve\", \"chivalry\"]\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Update House (protected)",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwt}}", "type": "string" }] },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/houses/{{houseId}}", "host": ["{{baseUrl}}"], "path": ["api","houses","{{houseId}}"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Gryffindor\",\n  \"founder\": \"Godric Gryffindor\",\n  \"colors\": [\"scarlet\", \"gold\"],\n  \"animal\": \"Lion\",\n  \"traits\": [\"bravery\", \"nerve\", \"chivalry\", \"daring\", \"courage\"]\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Delete House (protected)",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwt}}", "type": "string" }] },
+            "method": "DELETE",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/houses/{{houseId}}", "host": ["{{baseUrl}}"], "path": ["api","houses","{{houseId}}"] }
+          },
+          "response": []
+        }
+
+      ]
+    },
+
+    {
+      "name": "🧙 Characters",
+      "item": [
+
+        {
+          "name": "Get All Characters",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.success && json.data && json.data.length > 0) {",
+                  "    pm.collectionVariables.set('charId', json.data[0]._id);",
+                  "    console.log('charId saved:', json.data[0]._id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/characters?page=1&limit=10",
+              "host": ["{{baseUrl}}"], "path": ["api","characters"],
+              "query": [
+                { "key": "page",  "value": "1" },
+                { "key": "limit", "value": "10" },
+                { "key": "name",  "value": "", "disabled": true },
+                { "key": "house", "value": "", "disabled": true }
+              ]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Get All Characters — filter by name",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/characters?name=harry",
+              "host": ["{{baseUrl}}"], "path": ["api","characters"],
+              "query": [{ "key": "name", "value": "harry" }]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Get All Characters — filter by house",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/characters?house={{houseId}}",
+              "host": ["{{baseUrl}}"], "path": ["api","characters"],
+              "query": [{ "key": "house", "value": "{{houseId}}" }]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Get Character By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/characters/{{charId}}", "host": ["{{baseUrl}}"], "path": ["api","characters","{{charId}}"] }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Create Character (protected)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.success && json.data) {",
+                  "    pm.collectionVariables.set('charId', json.data._id);",
+                  "    console.log('charId saved:', json.data._id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwt}}", "type": "string" }] },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/characters", "host": ["{{baseUrl}}"], "path": ["api","characters"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Harry Potter\",\n  \"house\": \"{{houseId}}\",\n  \"species\": \"Human\",\n  \"patronus\": \"Stag\",\n  \"wand\": {\n    \"wood\": \"Holly\",\n    \"core\": \"Phoenix feather\",\n    \"lengthIn\": 11\n  }\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Update Character (protected)",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwt}}", "type": "string" }] },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/characters/{{charId}}", "host": ["{{baseUrl}}"], "path": ["api","characters","{{charId}}"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Harry Potter\",\n  \"house\": \"{{houseId}}\",\n  \"species\": \"Human\",\n  \"patronus\": \"Stag\",\n  \"wand\": {\n    \"wood\": \"Holly\",\n    \"core\": \"Phoenix feather\",\n    \"lengthIn\": 11\n  },\n  \"image\": \"\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Upload Character Image (protected)",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwt}}", "type": "string" }] },
+            "method": "POST",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/characters/{{charId}}/image", "host": ["{{baseUrl}}"], "path": ["api","characters","{{charId}}","image"] },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "image",
+                  "type": "file",
+                  "src": [],
+                  "description": "Select a JPEG, PNG, or WebP image (max 5 MB)"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Delete Character (protected)",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwt}}", "type": "string" }] },
+            "method": "DELETE",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/characters/{{charId}}", "host": ["{{baseUrl}}"], "path": ["api","characters","{{charId}}"] }
+          },
+          "response": []
+        }
+
+      ]
+    },
+
+    {
+      "name": "🎒 Students",
+      "item": [
+
+        {
+          "name": "Get All Students",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.success && json.data && json.data.length > 0) {",
+                  "    pm.collectionVariables.set('studentId', json.data[0]._id);",
+                  "    console.log('studentId saved:', json.data[0]._id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/students?page=1&limit=10",
+              "host": ["{{baseUrl}}"], "path": ["api","students"],
+              "query": [
+                { "key": "page",  "value": "1" },
+                { "key": "limit", "value": "10" },
+                { "key": "name",  "value": "", "disabled": true },
+                { "key": "house", "value": "", "disabled": true }
+              ]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Get All Students — filter by name",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/students?name=hermione",
+              "host": ["{{baseUrl}}"], "path": ["api","students"],
+              "query": [{ "key": "name", "value": "hermione" }]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Get All Students — filter by house",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/students?house={{houseId}}",
+              "host": ["{{baseUrl}}"], "path": ["api","students"],
+              "query": [{ "key": "house", "value": "{{houseId}}" }]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Get Student By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/students/{{studentId}}", "host": ["{{baseUrl}}"], "path": ["api","students","{{studentId}}"] }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Create Student (protected)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.success && json.data) {",
+                  "    pm.collectionVariables.set('studentId', json.data._id);",
+                  "    console.log('studentId saved:', json.data._id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwt}}", "type": "string" }] },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/students", "host": ["{{baseUrl}}"], "path": ["api","students"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Hermione Granger\",\n  \"house\": \"{{houseId}}\",\n  \"year\": 7,\n  \"bloodStatus\": \"muggle-born\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Update Student (protected)",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwt}}", "type": "string" }] },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/students/{{studentId}}", "host": ["{{baseUrl}}"], "path": ["api","students","{{studentId}}"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Hermione Granger\",\n  \"house\": \"{{houseId}}\",\n  \"year\": 7,\n  \"bloodStatus\": \"muggle-born\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Delete Student (protected)",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwt}}", "type": "string" }] },
+            "method": "DELETE",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/students/{{studentId}}", "host": ["{{baseUrl}}"], "path": ["api","students","{{studentId}}"] }
+          },
+          "response": []
+        }
+
+      ]
+    },
+
+    {
+      "name": "🦉 Staff",
+      "item": [
+
+        {
+          "name": "Get All Staff",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.success && json.data && json.data.length > 0) {",
+                  "    pm.collectionVariables.set('staffId', json.data[0]._id);",
+                  "    console.log('staffId saved:', json.data[0]._id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/staff?page=1&limit=10",
+              "host": ["{{baseUrl}}"], "path": ["api","staff"],
+              "query": [
+                { "key": "page",  "value": "1" },
+                { "key": "limit", "value": "10" },
+                { "key": "name",  "value": "", "disabled": true },
+                { "key": "house", "value": "", "disabled": true }
+              ]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Get All Staff — filter by name",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/staff?name=snape",
+              "host": ["{{baseUrl}}"], "path": ["api","staff"],
+              "query": [{ "key": "name", "value": "snape" }]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Get All Staff — filter by house",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/staff?house={{houseId}}",
+              "host": ["{{baseUrl}}"], "path": ["api","staff"],
+              "query": [{ "key": "house", "value": "{{houseId}}" }]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Get Staff Member By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/staff/{{staffId}}", "host": ["{{baseUrl}}"], "path": ["api","staff","{{staffId}}"] }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Create Staff Member (protected)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.success && json.data) {",
+                  "    pm.collectionVariables.set('staffId', json.data._id);",
+                  "    console.log('staffId saved:', json.data._id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwt}}", "type": "string" }] },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/staff", "host": ["{{baseUrl}}"], "path": ["api","staff"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Severus Snape\",\n  \"house\": \"{{houseId}}\",\n  \"subject\": \"Potions\",\n  \"title\": \"Professor\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Update Staff Member (protected)",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwt}}", "type": "string" }] },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/staff/{{staffId}}", "host": ["{{baseUrl}}"], "path": ["api","staff","{{staffId}}"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Severus Snape\",\n  \"house\": \"{{houseId}}\",\n  \"subject\": \"Defence Against the Dark Arts\",\n  \"title\": \"Professor\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Delete Staff Member (protected)",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwt}}", "type": "string" }] },
+            "method": "DELETE",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/staff/{{staffId}}", "host": ["{{baseUrl}}"], "path": ["api","staff","{{staffId}}"] }
+          },
+          "response": []
+        }
+
+      ]
+    }
+
+  ]
+}

@@ -1,0 +1,138 @@
+const Student = require('../models/Student');
+
+// ── Shared helpers ─────────────────────────────────────────────
+const parsePagination = (query) => {
+  const page  = Math.max(1, parseInt(query.page,  10) || 1);
+  const limit = Math.min(100, Math.max(1, parseInt(query.limit, 10) || 10));
+  const skip  = (page - 1) * limit;
+  return { page, limit, skip };
+};
+
+const handleMongooseError = (error, body, res, next) => {
+  if (error.name === 'CastError')
+    return res.status(400).json({ success: false, message: `Invalid id format` });
+  if (error.code === 11000)
+    return res.status(409).json({ success: false, message: `A student named "${body?.name}" already exists` });
+  if (error.name === 'ValidationError') {
+    const messages = Object.values(error.errors).map((e) => e.message);
+    return res.status(400).json({ success: false, message: messages.join('. ') });
+  }
+  next(error);
+};
+
+// ─────────────────────────────────────────────────────────────
+// @desc    Get all students (paginated, filterable)
+// @route   GET /api/students?page=1&limit=10&name=harry&house=<id>
+// @access  Public
+// ─────────────────────────────────────────────────────────────
+const getStudents = async (req, res, next) => {
+  try {
+    const { page, limit, skip } = parsePagination(req.query);
+
+    // Build filter — both params are optional and combinable
+    const filter = {};
+    if (req.query.name) {
+      filter.name = { $regex: req.query.name, $options: 'i' };
+    }
+    if (req.query.house) {
+      filter.house = req.query.house; // expects a valid House ObjectId
+    }
+
+    const [students, total] = await Promise.all([
+      Student.find(filter).skip(skip).limit(limit).sort({ name: 1 }),
+      Student.countDocuments(filter),
+    ]);
+
+    const totalPages = Math.ceil(total / limit);
+
+    res.status(200).json({
+      success: true,
+      pagination: {
+        total, page, limit, totalPages,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1,
+      },
+      count: students.length,
+      data: students,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ─────────────────────────────────────────────────────────────
+// @desc    Get a single student by ID
+// @route   GET /api/students/:id
+// @access  Public
+// ─────────────────────────────────────────────────────────────
+const getStudentById = async (req, res, next) => {
+  try {
+    const student = await Student.findById(req.params.id);
+    if (!student)
+      return res.status(404).json({ success: false, message: `Student not found with id: ${req.params.id}` });
+
+    res.status(200).json({ success: true, data: student });
+  } catch (error) {
+    handleMongooseError(error, null, res, next);
+  }
+};
+
+// ─────────────────────────────────────────────────────────────
+// @desc    Create a student
+// @route   POST /api/students
+// @access  Protected
+// ─────────────────────────────────────────────────────────────
+const createStudent = async (req, res, next) => {
+  try {
+    const { name, house, year, bloodStatus } = req.body;
+    const student = await Student.create({ name, house, year, bloodStatus });
+    res.status(201).json({ success: true, data: student });
+  } catch (error) {
+    handleMongooseError(error, req.body, res, next);
+  }
+};
+
+// ─────────────────────────────────────────────────────────────
+// @desc    Update a student
+// @route   PUT /api/students/:id
+// @access  Protected
+// ─────────────────────────────────────────────────────────────
+const updateStudent = async (req, res, next) => {
+  try {
+    const { name, house, year, bloodStatus } = req.body;
+    const student = await Student.findByIdAndUpdate(
+      req.params.id,
+      { name, house, year, bloodStatus },
+      { new: true, runValidators: true }
+    );
+    if (!student)
+      return res.status(404).json({ success: false, message: `Student not found with id: ${req.params.id}` });
+
+    res.status(200).json({ success: true, data: student });
+  } catch (error) {
+    handleMongooseError(error, req.body, res, next);
+  }
+};
+
+// ─────────────────────────────────────────────────────────────
+// @desc    Delete a student
+// @route   DELETE /api/students/:id
+// @access  Protected
+// ─────────────────────────────────────────────────────────────
+const deleteStudent = async (req, res, next) => {
+  try {
+    const student = await Student.findByIdAndDelete(req.params.id);
+    if (!student)
+      return res.status(404).json({ success: false, message: `Student not found with id: ${req.params.id}` });
+
+    res.status(200).json({
+      success: true,
+      message: `Student "${student.name}" deleted successfully`,
+      data: {},
+    });
+  } catch (error) {
+    handleMongooseError(error, null, res, next);
+  }
+};
+
+module.exports = { getStudents, getStudentById, createStudent, updateStudent, deleteStudent };
