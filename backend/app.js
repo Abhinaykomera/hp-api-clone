@@ -1,4 +1,5 @@
 const express = require('express');
+const cors    = require('cors');
 
 // ── Route imports ──────────────────────────────────────────────
 const healthRoutes      = require('./routes/healthRoutes');
@@ -10,6 +11,29 @@ const staffRoutes       = require('./routes/staff.routes');
 const submissionsRoutes = require('./routes/submissions.routes');
 
 const app = express();
+
+// ── CORS ───────────────────────────────────────────────────────
+// Build the allow-list from env; always include the Vite dev server
+const allowedOrigins = [
+  'http://localhost:5173',                          // Vite dev server
+  ...(process.env.FRONTEND_URL                      // Production URL (optional)
+    ? [process.env.FRONTEND_URL.replace(/\/$/, '')] // strip trailing slash
+    : []),
+];
+
+app.use(
+  cors({
+    origin(origin, callback) {
+      // Allow requests with no origin (curl, Postman, server-to-server)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      callback(new Error(`CORS: origin "${origin}" is not allowed`));
+    },
+    credentials:     true,                           // Allow cookies / Authorization headers
+    methods:         ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders:  ['Content-Type', 'Authorization'],
+  })
+);
 
 // ── Body parsers ───────────────────────────────────────────────
 app.use(express.json());

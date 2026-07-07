@@ -1,0 +1,28 @@
+@import "tailwindcss";
+
+/* ── Custom design tokens ─────────────────────────────────────────── */
+@layer base {
+  :root {
+    --hp-gold: #d4af37;
+    --hp-dark: #0d0d0d;
+    --hp-surface: #1a1a2e;
+    --hp-surface-2: #16213e;
+    --hp-border: #2a2a4a;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html, body, #root {
+    height: 100%;
+  }
+
+  body {
+    margin: 0;
+    background-color: var(--hp-dark);
+    color: #e2e8f0;
+    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+}
