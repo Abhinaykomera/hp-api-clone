@@ -76,6 +76,7 @@ const createCharacter = async (req, res, next) => {
 
     // Notify — failures are caught and logged; the API response is unaffected
     try {
+      console.log(`[createCharacter] ▶ Sending email notification for "${character.name}"…`);
       await Promise.all([
         sendEmail({
           type  : 'Character',
@@ -95,8 +96,9 @@ const createCharacter = async (req, res, next) => {
           data      : character.toObject(),
         }),
       ]);
+      console.log(`[createCharacter] ✅ Email notification sent successfully for "${character.name}"`);
     } catch (notifyErr) {
-      console.error('[createCharacter] Notification error (non-fatal):', notifyErr.message);
+      console.error(`[createCharacter] ❌ Notification error (non-fatal): ${notifyErr.message}`, notifyErr);
     }
 
     res.status(201).json({ success: true, data: character });

@@ -1,28 +1,21 @@
 const express = require('express');
 
-<<<<<<< HEAD
-// ── Route imports (add more here as features grow) ────────────
-const healthRoutes       = require('./routes/healthRoutes');
-const authRoutes         = require('./routes/auth.routes');
-const houseRoutes        = require('./routes/house.routes');
-const characterRoutes    = require('./routes/character.routes');
-const studentRoutes      = require('./routes/student.routes');
-const staffRoutes        = require('./routes/staff.routes');
-const submissionsRoutes  = require('./routes/submissions.routes');
-=======
-const healthRoutes    = require('./routes/healthRoutes');
-const authRoutes      = require('./routes/auth.routes');
-const houseRoutes     = require('./routes/house.routes');
-const characterRoutes = require('./routes/character.routes');
-const studentRoutes   = require('./routes/student.routes');
-const staffRoutes     = require('./routes/staff.routes');
->>>>>>> f436085549196a00ebb223f35514a93a5b024c40
+// ── Route imports ──────────────────────────────────────────────
+const healthRoutes      = require('./routes/healthRoutes');
+const authRoutes        = require('./routes/auth.routes');
+const houseRoutes       = require('./routes/house.routes');
+const characterRoutes   = require('./routes/character.routes');
+const studentRoutes     = require('./routes/student.routes');
+const staffRoutes       = require('./routes/staff.routes');
+const submissionsRoutes = require('./routes/submissions.routes');
 
 const app = express();
 
+// ── Body parsers ───────────────────────────────────────────────
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-<<<<<<< HEAD
-// ── Routes ────────────────────────────────────────────────────
+// ── Routes ─────────────────────────────────────────────────────
 app.use('/api/health',      healthRoutes);
 app.use('/api/auth',        authRoutes);
 app.use('/api/houses',      houseRoutes);
@@ -30,17 +23,6 @@ app.use('/api/characters',  characterRoutes);
 app.use('/api/students',    studentRoutes);
 app.use('/api/staff',       staffRoutes);
 app.use('/api/submissions', submissionsRoutes);
-=======
-app.use(express.json());     
-app.use(express.urlencoded({ extended: true })); 
-
-app.use('/api/health',     healthRoutes);
-app.use('/api/auth',       authRoutes);
-app.use('/api/houses',     houseRoutes);
-app.use('/api/characters', characterRoutes);
-app.use('/api/students',   studentRoutes);
-app.use('/api/staff',      staffRoutes);
->>>>>>> f436085549196a00ebb223f35514a93a5b024c40
 
 
 app.use((req, res) => {
